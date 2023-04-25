@@ -247,21 +247,21 @@ void logging(String text, String type = "debug") { if ( this["${type}Enable"] ||
 @Field static Map commandClassVersions = [0x5E: 2, 0x86: 3, 0x72: 1, 0x32: 3, 0x56: 1, 0x60: 3, 0x8E: 2, 0x70: 2, 0x59: 1, 0x85: 2, 0x7A: 2, 0x73: 1, 0x5A: 1, 0x98: 1]
 
 @Field static parameterMap = [
-	[key: "reportingThreshold", title: "Reporting Threshold", type: "enum", options: [0: "0 - disable", 1: "1 - enable"], num: 3, size: 1, def: 1, min: 0, max: 1],
-	[key: "thresholdHEM", title: "HEM threshold", type: "number", num: 4, size: 2, def: 50, min: 0, max: 60000], 
-	[key: "thresholdClamp1", title: "Clamp 1 threshold", type: "number", num: 5, size: 2, def: 50, min: 0, max: 60000], 
-	[key: "thresholdClamp2", title: "Clamp 2 threshold", type: "number", num: 6, size: 2, def: 50, min: 0, max: 60000], 
-	[key: "thresholdClamp3", title: "Clamp 3 threshold", type: "number", num: 7, size: 2, def: 50, min: 0, max: 60000], 
-	[key: "percentageHEM", title: "HEM percentage", type: "number", num: 8, size: 1, def: 10, min: 0, max: 100], 
-	[key: "percentageClamp1", title: "Clamp 1 percentage", type: "number", num: 9, size: 1, def: 10, min: 0, max: 100], 
-	[key: "percentageClamp2", title: "Clamp 2 percentage", type: "number", num: 10, size: 1, def: 10, min: 0, max: 100], 
-	[key: "percentageClamp3", title: "Clamp 3 percentage", type: "number", num: 11, size: 1, def: 10, min: 0, max: 100],
+	[key: "reportingThreshold", title: "Enable selective reporting", type: "enum", options: [0: "0 - disable", 1: "1 - enable"], num: 3, size: 1, def: 1, min: 0, max: 1],
+	[key: "thresholdHEM", title: "Whole HEM threshold change (50W default))", type: "number", num: 4, size: 2, def: 50, min: 0, max: 60000], 
+	[key: "thresholdClamp1", title: "Clamp 1 threshold change (50W default)", type: "number", num: 5, size: 2, def: 50, min: 0, max: 60000], 
+	[key: "thresholdClamp2", title: "Clamp 2 threshold change (50W default)", type: "number", num: 6, size: 2, def: 50, min: 0, max: 60000], 
+	[key: "thresholdClamp3", title: "Clamp 3 threshold change (50W default)", type: "number", num: 7, size: 2, def: 50, min: 0, max: 60000], 
+	[key: "percentageHEM", title: "HEM percentage change (10% default)", type: "number", num: 8, size: 1, def: 10, min: 0, max: 100], 
+	[key: "percentageClamp1", title: "Clamp 1 percentage change (10% default)", type: "number", num: 9, size: 1, def: 10, min: 0, max: 100], 
+	[key: "percentageClamp2", title: "Clamp 2 percentage change (10% default)", type: "number", num: 10, size: 1, def: 10, min: 0, max: 100], 
+	[key: "percentageClamp3", title: "Clamp 3 percentage change (10% default)", type: "number", num: 11, size: 1, def: 10, min: 0, max: 100],
 	[key: "crcReporting", title: "CRC-16 reporting", type: "enum", options: [0: "0 - disable", 1: "1 - enable"], num: 13, size: 1, def: 0, min: 0, max: 1],
-	[key: "group1", title: "Group 1", type: "number", num: 101, size: 4, def: 2, min: 0, max: 4210702],
-	[key: "group2", title: "Group 2", type: "number", num: 102, size: 4, def: 1, min: 0, max: 4210702],
-	[key: "group3", title: "Group 3", type: "number", num: 103, size: 4, def: 0, min: 0, max: 4210702],
-	[key: "timeGroup1", title: "Group 1 time interval", type: "number", num: 111, size: 4, def: 5, min: 0, max: 268435456],
-	[key: "timeGroup2", title: "Group 2 time interval", type: "number", num: 112, size: 4, def: 120, min: 0, max: 268435456],
-	[key: "timeGroup3", title: "Group 3 time interval", type: "number", num: 113, size: 4, def: 120, min: 0, max: 268435456]
+	[key: "group1", title: "Configure report Group 1", type: "number", num: 101, size: 4, def: 2, min: 0, max: 4210702],
+	[key: "group2", title: "Configure report Group 2", type: "number", num: 102, size: 4, def: 1, min: 0, max: 4210702],
+	[key: "group3", title: "Configure report Group 3", type: "number", num: 103, size: 4, def: 0, min: 0, max: 4210702],
+	[key: "timeGroup1", title: "Group 1 report interval(default 5 sec)", type: "number", num: 111, size: 4, def: 5, min: 0, max: 268435456],
+	[key: "timeGroup2", title: "Group 2 report interval(default 120 sec)", type: "number", num: 112, size: 4, def: 120, min: 0, max: 268435456],
+	[key: "timeGroup3", title: "Group 3 report interval(default 120 sec)", type: "number", num: 113, size: 4, def: 120, min: 0, max: 268435456]
 ]
 
