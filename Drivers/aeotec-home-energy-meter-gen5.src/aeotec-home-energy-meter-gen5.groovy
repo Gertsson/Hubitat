@@ -6,7 +6,8 @@
  *  Changes made are:
  *      Added fingerprint for ZW095-C EU version (60 Amp 3 phase)
  *      Removed decimals for everything except Current (Amp) were I set it to 2 decimals (Added variable to easily change if anyone would want) 
- *      Decimals are not needed for Watt (W), Voltage (V), or Energy (KWh) and its look better in Dashboards 
+ *      Decimals are not needed for Watt (W), Voltage (V), or Energy (KWh) and its look better in Dashboards.
+ *		More descriptive text for parameters
  *
  */
 import groovy.transform.Field 
@@ -25,7 +26,7 @@ metadata {
 		
 		fingerprint  mfr:"0086", prod:"0002", deviceId:"005F", inClusters:"0x5E,0x86,0x72,0x32,0x56,0x60,0x8E,0x70,0x59,0x85,0x7A,0x73,0x5A" 
 		fingerprint  mfr:"0086", prod:"0002", deviceId:"005F", inClusters:"0x5E,0x86,0x72,0x32,0x56,0x60,0x8E,0x70,0x59,0x85,0x7A,0x73,0x5A,0x98" 
-        fingerprint  mfr:"0086", prod:"0002", deviceId:"0095", inClusters:"0x5E,0x86,0x72,0x32,0x56,0x60,0x8E,0x70,0x59,0x85,0x7A,0x73,0x5A" 
+		fingerprint  mfr:"0086", prod:"0002", deviceId:"0095", inClusters:"0x5E,0x86,0x72,0x32,0x56,0x60,0x8E,0x70,0x59,0x85,0x7A,0x73,0x5A" 
 		fingerprint  mfr:"0086", prod:"0002", deviceId:"0095", inClusters:"0x5E,0x86,0x72,0x32,0x56,0x60,0x8E,0x70,0x59,0x85,0x7A,0x73,0x5A,0x98" 
 	}
 	
@@ -156,7 +157,7 @@ def zwaveEvent(hubitat.zwave.commands.multichannelv3.MultiChannelEndPointReport 
 	if ( !childDevices && cmd.endPoints > 1 ) {
 		(1..cmd.endPoints).each() {
 			addChildDevice(
-				"ClassicGOD",
+				"Gertsson",
 				"Aeotec Home Energy Meter Child Device", 
 				"${device.deviceNetworkId}-${it}", 
 				[isComponent: false, name: "${device.displayName} (Clamp ${it})"]
@@ -247,7 +248,7 @@ void logging(String text, String type = "debug") { if ( this["${type}Enable"] ||
 @Field static Map commandClassVersions = [0x5E: 2, 0x86: 3, 0x72: 1, 0x32: 3, 0x56: 1, 0x60: 3, 0x8E: 2, 0x70: 2, 0x59: 1, 0x85: 2, 0x7A: 2, 0x73: 1, 0x5A: 1, 0x98: 1]
 
 @Field static parameterMap = [
-	[key: "reportingThreshold", title: "Enable selective reporting", type: "enum", options: [0: "0 - disable", 1: "1 - enable"], num: 3, size: 1, def: 1, min: 0, max: 1],
+	[key: "reportingThreshold", title: "Enable selective(threshhold) reporting", type: "enum", options: [0: "0 - disable", 1: "1 - enable"], num: 3, size: 1, def: 1, min: 0, max: 1],
 	[key: "thresholdHEM", title: "Whole HEM threshold change (50W default))", type: "number", num: 4, size: 2, def: 50, min: 0, max: 60000], 
 	[key: "thresholdClamp1", title: "Clamp 1 threshold change (50W default)", type: "number", num: 5, size: 2, def: 50, min: 0, max: 60000], 
 	[key: "thresholdClamp2", title: "Clamp 2 threshold change (50W default)", type: "number", num: 6, size: 2, def: 50, min: 0, max: 60000], 

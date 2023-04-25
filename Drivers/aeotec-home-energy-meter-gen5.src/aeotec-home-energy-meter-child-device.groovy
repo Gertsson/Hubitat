@@ -3,7 +3,7 @@
  *
  *  Copyright 2023 Jonas Gertsson
  *  All code is so far original from Artur Draga - ClassicGOD
- *  Just changed namespace 
+ *  Just changed namespace to match parent HEM device
  *
  */
 metadata {
