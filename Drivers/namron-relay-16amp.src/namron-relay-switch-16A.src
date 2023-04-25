@@ -1,5 +1,5 @@
 /**
- *  NAMRON(SUNRICHER) Z-WAVE SWITCH 16A V1.0.0 (HUBITAT)
+ *  NAMRON(SUNRICHER) Z-WAVE SWITCH 16A V1.0.1 (HUBITAT)
  *  (Models: SR-ZV9101SAC-HP-SWITCH-B)
  *
  *  Author: 
@@ -12,8 +12,10 @@
  *
  *  Changelog:
  *
- *    1.0.0 (06/11/2022)
+ *    V1.0.0 (06/11/2022)
  *      - Initial Release
+ *    V1.0.1 (04/25/2023)
+ *      - Remove the combined High/low (Voltage, current,energy) history since didn't work well 
  *
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
