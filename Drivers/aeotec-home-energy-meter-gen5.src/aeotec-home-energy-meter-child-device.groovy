@@ -3,11 +3,11 @@
  *
  *  Copyright 2023 Jonas Gertsson
  *  All code is so far original from Artur Draga - ClassicGOD
- *  Just changed namespace to 
+ *  Just changed namespace 
  *
  */
 metadata {
-	definition (name: "Aeotec Home Energy Meter Child Device", namespace: "ClassicGOD", author: "Artur Draga") {
+	definition (name: "Aeotec Home Energy Meter Child Device", namespace: "Gertsson", author: "Artur Draga") {
 		capability "Energy Meter"
 		capability "Power Meter"
 		capability "Voltage Measurement"
