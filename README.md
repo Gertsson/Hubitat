@@ -1,4 +1,4 @@
-# Hubitat Drivers and Appd
+# Hubitat Drivers and Apps
 These are drivers and apps I have modified or made for Hubitat Elevation C-7
 
 Driver:
