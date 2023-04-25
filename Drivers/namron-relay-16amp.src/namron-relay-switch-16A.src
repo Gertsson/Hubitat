@@ -31,7 +31,7 @@
 metadata {
 	definition (
 		name: "Namron Z-Wave Switch 16A", 
-		namespace: "None for now", 
+		namespace: "Gertsson", 
 		author: "Jonas Gertsson",
 		vid:"generic-switch-power-energy"
 	) {
