@@ -93,23 +93,19 @@ private getParamInput(param) {
 
 // Meters
 private getMeterEnergy() { 
-	return getMeterMap("energy", 0, "kWh") 
+	return [name: "energy", scale:0, unit:"kWh"] 
 }
 
 private getMeterPower() { 
-	return getMeterMap("power", 2, "W")
+	return [name: "power", scale:2, unit:"W"]
 }
 
 private getMeterVoltage() { 
-	return getMeterMap("voltage", 4, "V") 
+    return [name: "voltage", scale:4, unit:"V"]
 }
 
 private getMeterCurrent() { 
-	return getMeterMap("current", 5, "A")
-}
-
-private getMeterMap(name, scale, unit) {
-	return [name:name, scale:scale, unit:unit]
+    return [name: "current", scale:5, unit:"A"]
 }
 
 
@@ -409,6 +405,7 @@ def zwaveEvent(hubitat.zwave.commands.meterv3.MeterReport cmd) {
 				break
 			case meterPower.scale:
 				meter = meterPower
+                val = (int) Math.round(val)
 				break
 			case meterVoltage.scale:
 				meter = meterVoltage
