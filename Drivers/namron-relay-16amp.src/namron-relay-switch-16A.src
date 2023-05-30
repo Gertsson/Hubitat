@@ -394,7 +394,7 @@ private sendSwitchEvent(value, type) {
 
 def zwaveEvent(hubitat.zwave.commands.meterv3.MeterReport cmd) {
 	logTrace "MeterReport: $cmd"
-	def val = roundTwoPlaces(cmd.scaledMeterValue)
+	def val = Math.round(safeToDec(cmd.scaledMeterValue) * 100) / 100
 	
 	if (val >= 0) {
 		def meter 
@@ -453,8 +453,8 @@ private calculateEnergyDuration() {
 		return "Unknown"
 	}
 	else {
-		def duration = roundTwoPlaces((new Date().time - energyTimeMS) / 60000)
-		
+		def duration = Math.round(safeToDec((new Date().time - energyTimeMS) / 60000) * 100) / 100
+
 		if (duration >= (24 * 60)) {
 			return getFormattedDuration(duration, (24 * 60), "Day")
 		}
@@ -469,7 +469,7 @@ private calculateEnergyDuration() {
 
 private getFormattedDuration(duration, divisor, name) {
 	if (divisor) {
-		duration = roundTwoPlaces(duration / divisor)
+		duration = Math.round(safeToDec(duration / divisor)) * 100) / 100
 	}	
 	return "${duration} ${name}${duration == 1 ? '' : 's'}"
 }
@@ -718,10 +718,6 @@ private safeToInt(val, defaultVal=0) {
 
 private safeToDec(val, defaultVal=0) {
 	return "${val}"?.isBigDecimal() ? "${val}".toBigDecimal() : defaultVal
-}
-
-private roundTwoPlaces(val) {
-	return Math.round(safeToDec(val) * 100) / 100
 }
 
 private convertToLocalTimeString(dt) {
