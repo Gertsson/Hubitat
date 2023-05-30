@@ -470,7 +470,7 @@ private calculateEnergyDuration() {
 
 private getFormattedDuration(duration, divisor, name) {
 	if (divisor) {
-		duration = Math.round(safeToDec(duration / divisor)) * 100) / 100
+		duration = Math.round(safeToDec(duration / divisor) * 100) / 100
 	}	
 	return "${duration} ${name}${duration == 1 ? '' : 's'}"
 }
