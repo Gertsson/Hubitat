@@ -33,7 +33,8 @@ metadata {
 		name: "Namron Z-Wave Switch 16A", 
 		namespace: "Gertsson", 
 		author: "Jonas Gertsson",
-		vid:"generic-switch-power-energy"
+		vid:"generic-switch-power-energy",
+		importUrl: "https://raw.githubusercontent.com/Gertsson/Hubitat/main/Drivers/namron-relay-16amp.src/namron-relay-switch-16A.src"
 	) {
 		capability "Actuator"
 		capability "Sensor"
