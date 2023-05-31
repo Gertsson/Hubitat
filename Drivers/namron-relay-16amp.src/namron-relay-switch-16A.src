@@ -469,26 +469,25 @@ private calculateEnergyDuration() {
 	}
 	else {
 		def duration = Math.round(safeToDec((new Date().time - energyTimeMS) / 60000) * 100) / 100
+		def formatedDuration = ""
+		def trimmedDuration = 0
 
 		if (duration >= (24 * 60)) {
-			return getFormattedDuration(duration, (24 * 60), "Day")
+			trimmedDuration = (int)safeToDec(duration / (24 * 60))
+			formatedDuration = "${trimmedDuration} Day${trimmedDuration == 1 ? '' : 's'} "
+			duration = duration - trimmedDuration * (24 * 60)
 		}
-		else if (duration >= 60) {
-			return getFormattedDuration(duration, 60, "Hour")
+		if (duration >= 60) {
+			trimmedDuration = (int)safeToDec(duration / 60) 
+			formatedDuration += "${trimmedDuration} Hour${trimmedDuration == 1 ? '' : 's'} "
+			duration = duration - trimmedDuration * 60
 		}
-		else {
-			return getFormattedDuration(duration, 0, "Minute")
-		}
+		trimmedDuration = Math.round(safeToDec(duration))
+		formatedDuration += "${trimmedDuration} Minute" + "${duration == 1 ? '' : 's'}"
+		
+		return formatedDuration
 	}
 }
-
-private getFormattedDuration(duration, divisor, name) {
-	if (divisor) {
-		duration = Math.round(safeToDec(duration / divisor) * 100) / 100
-	}	
-	return "${duration} ${name}${duration == 1 ? '' : 's'}"
-}
-
 
 def zwaveEvent(hubitat.zwave.Command cmd) {
 	logDebug "Unhandled zwaveEvent: $cmd"
