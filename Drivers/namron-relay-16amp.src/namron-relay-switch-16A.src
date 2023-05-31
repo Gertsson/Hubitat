@@ -396,7 +396,8 @@ private sendSwitchEvent(value, type) {
 def zwaveEvent(hubitat.zwave.commands.meterv3.MeterReport cmd) {
 	logTrace "MeterReport: $cmd"
 	def val = Math.round(safeToDec(cmd.scaledMeterValue) * 100) / 100
-	
+	def filterVal = false
+    
 	if (val >= 0) {
 		def meter 
 		switch (cmd.scale) {
@@ -407,18 +408,31 @@ def zwaveEvent(hubitat.zwave.commands.meterv3.MeterReport cmd) {
 			case meterPower.scale:
 				meter = meterPower
                 val = (int) Math.round(val)
+                if (val >= 3850) { 
+                    log.warn "Abnormally high Power value filtered out " + val + "W"
+                    filterVal = True
+                }                            
 				break
 			case meterVoltage.scale:
 				meter = meterVoltage
+                val = (int) Math.round(val)
+                if (val >= 250) { 
+                    log.warn "Abnormally high Voltage value filtered out " + val + "V"
+                    filterVal = True
+                }                            
 				break
 			case meterCurrent.scale:
 				meter = meterCurrent
+                if (val > 17) { 
+                    log.warn "Abnormally high Current value filtered out " + val + "A"
+                    filterVal = True
+                }   
 				break
 			default:
 				logDebug "Unknown Meter Scale: $cmd"
 		}
 
-		if (meter?.name && getAttrVal("${meter.name}") != val) {
+		if (meter?.name && getAttrVal("${meter.name}") != val && filterVal != true) {
 			sendEvent(getEventMap(meter.name, val, null, null, meter.unit))
 			
 			if (meter.name != meterEnergy.name) {
@@ -742,5 +756,5 @@ private logDebug(msg) {
 }
 
 private logTrace(msg) {
-	// log.trace "$msg"
+	 // log.trace "$msg"
 }
