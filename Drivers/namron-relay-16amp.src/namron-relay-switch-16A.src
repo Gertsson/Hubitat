@@ -16,7 +16,7 @@
  *      - Initial Release
  *    V1.0.1 (04/25/2023)
  *      - Remove the combined High/low (Voltage, current,energy) history since didn't work well 
- *    V1.0.2 (05/31/2023)
+ *    V1.0.2 (05/30/2023)
  *      - Removed abnormally high values for Power, Voltage and Current that are sometimes reported
  *    V1.0.3 (05/31/2023)
  *      - Formated Energy duration to be reader friendly and trimmed decimals not needed for Voltage and Watt
