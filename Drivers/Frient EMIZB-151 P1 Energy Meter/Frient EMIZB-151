@@ -1,0 +1,309 @@
+/*
+ * Frient EMIZB-151 P1 Energy Meter
+ * Hubitat Driver (Strict 0x0B04 / Standard Endpoint 0x02 Only)
+ * 
+ * Version: 1.0.0 (Production Optimized)
+ */
+
+import hubitat.zigbee.zcl.DataType
+
+metadata {
+    definition(
+        name: "Frient EMIZB-151 P1 Energy Meter",
+        namespace: "custom",
+        author: "Jonas"
+    ) {
+        capability "Refresh"
+        capability "Initialize"
+        capability "Configuration"
+        capability "EnergyMeter"
+        capability "PowerMeter"
+        capability "VoltageMeasurement"
+        capability "CurrentMeter"
+
+        attribute "power", "number"
+        attribute "energy", "number"
+        attribute "frequency", "number"
+        attribute "reactivePower", "number"
+        attribute "energyProduced", "number"
+        
+        
+        attribute "voltageA", "number"
+        attribute "currentA", "number"
+        attribute "powerA", "number"
+        attribute "reactivePowerA", "number"
+        
+        attribute "voltageB", "number"
+        attribute "currentB", "number"
+        attribute "powerB", "number"
+        attribute "reactivePowerB", "number"
+
+        attribute "voltageC", "number"
+        attribute "currentC", "number"
+        attribute "powerC", "number"
+        attribute "reactivePowerC", "number"
+
+        fingerprint profileId:"0104", endpointId:"02", inClusters:"0000,0003,0702,0B01,0B04", outClusters:"0003", model:"EMIZB-151", manufacturer:"frient A/S"
+    }
+
+   
+    preferences {
+        input name: "pollIntervalTotalPower", type: "enum", title: "Total Active/Reactive Power Polling", options: ["10":"Every 10 seconds", "20":"Every 20 seconds", "30":"Every 30 seconds", "60":"Every minute"], defaultValue: "10"
+        input name: "pollIntervalPhasePower", type: "enum", title: "Individual Phase Powers Polling", options: ["10":"Every 10 seconds", "20":"Every 20 seconds", "30":"Every 30 seconds", "60":"Every minute", "300":"Every 5 minutes"], defaultValue: "30"
+        input name: "pollIntervalVoltAmp", type: "enum", title: "Phase Voltages & Currents Polling", options: ["10":"Every 10 seconds", "20":"Every 20 seconds", "30":"Every 30 seconds", "60":"Every minute", "300":"Every 5 minutes"], defaultValue: "30"
+        input name: "pollIntervalEnergy", type: "enum", title: "Total Cumulative Energy (kWh) Polling", options: ["30":"Every 30 seconds", "60":"Every minute", "300":"Every 5 minutes", "3600":"Every hour"], defaultValue: "60"
+        input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: true
+    }
+}
+
+def installed() {
+    log.info "EMIZB-151 installed"
+    initialize()
+}
+
+def updated() {
+    log.info "EMIZB-151 configuration updated"
+    if (debugLogging) log.debug "EMIZB-151: Clearing old scheduled tasks via unschedule()."
+    unschedule() 
+    initialize()
+}
+
+def initialize() {
+    log.info "Initializing EMIZB-151 multi-interval timers..."
+    
+    // 1. Setup Total Active/Reactive Power Timer
+    int intTotalPower = (pollIntervalTotalPower ?: "10").toInteger()
+    log.info "EMIZB-151: Total Power loop scheduled for every ${intTotalPower} seconds."
+    if (intTotalPower < 60) schedule("0/${intTotalPower} * * * * ?", pollTotalPower) else runEvery1Minute(pollTotalPower)
+
+    // 2. Setup Individual Phase Powers Timer
+    int intPhasePower = (pollIntervalPhasePower ?: "30").toInteger()
+    log.info "EMIZB-151: Phase Powers loop scheduled for every ${intPhasePower} seconds."
+    if (intPhasePower < 60) schedule("0/${intPhasePower} * * * * ?", pollPhasePowers) else if (intPhasePower == 60) runEvery1Minute(pollPhasePowers) else runEvery5Minutes(pollPhasePowers)
+
+    // 3. Setup Voltages & Currents Timer
+    int intVoltAmp = (pollIntervalVoltAmp ?: "30").toInteger()
+    log.info "EMIZB-151: Voltages & Currents loop scheduled for every ${intVoltAmp} seconds."
+    if (intVoltAmp < 60) schedule("0/${intVoltAmp} * * * * ?", pollVoltAmp) else if (intVoltAmp == 60) runEvery1Minute(pollVoltAmp) else runEvery5Minutes(pollVoltAmp)
+
+    // 4. Setup Cumulative Energy Timer + Frequency
+    int intEnergy = (pollIntervalEnergy ?: "60").toInteger()
+    log.info "EMIZB-151: Cumulative Energy loop scheduled for every ${intEnergy} seconds."
+    if (intEnergy < 60) schedule("0/${intEnergy} * * * * ?", pollEnergy) else if (intEnergy == 60) runEvery1Minute(pollEnergy) else if (intEnergy == 300) runEvery5Minutes(pollEnergy) else runEvery1Hour(pollEnergy)
+
+    // Execute an initial manual refresh for all states immediately on startup
+    refresh()
+}
+
+def configure() {
+    log.info "EMIZB-151: Rebuilding core Zigbee endpoint binding tables..."
+    def cmds = []
+    def endpointId = "02"
+
+    cmds << "zdo bind ${device.deviceNetworkId} 0x${endpointId} 0x01 0x0702 {${device.zigbeeId}} {}"
+    cmds << "zdo bind ${device.deviceNetworkId} 0x${endpointId} 0x01 0x0B04 {${device.zigbeeId}} {}"
+    
+    if (debugLogging) log.debug "EMIZB-151: Generated configuration binding strings: ${cmds}"
+    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+    return cmds
+}
+
+def autoRefresh() {
+    if (debugLogging) log.debug "EMIZB-151: Executing scheduled background attribute query..."
+    refresh()
+}
+
+// === SEPARATED POLLING TASKS ===
+
+def pollTotalPower() {
+    if (debugLogging) log.debug "EMIZB-151: Polling Task -> Fetching Total Active & Reactive Power..."
+    def cmds = []
+    def ep = [destEndpoint: 0x02]
+    cmds += zigbee.readAttribute(0x0B04, 0x0304, ep) // Total Power
+    cmds += zigbee.readAttribute(0x0B04, 0x0305, ep) // Total Reactive Power
+    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+}
+
+def pollPhasePowers() {
+    if (debugLogging) log.debug "EMIZB-151: Polling Task -> Fetching Individual Phase Powers..."
+    def cmds = []
+    def ep = [destEndpoint: 0x02]
+    cmds += zigbee.readAttribute(0x0B04, 0x050B, ep) // Power A
+    cmds += zigbee.readAttribute(0x0B04, 0x090B, ep) // Power B
+    cmds += zigbee.readAttribute(0x0B04, 0x0A0B, ep) // Power C
+    cmds += zigbee.readAttribute(0x0B04, 0x050E, ep) // Reactive Power A
+    cmds += zigbee.readAttribute(0x0B04, 0x090E, ep) // Reactive Power B
+    cmds += zigbee.readAttribute(0x0B04, 0x0A0E, ep) // Reactive Power C
+    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+}
+
+def pollVoltAmp() {
+    if (debugLogging) log.debug "EMIZB-151: Polling Task -> Fetching Phase Voltages & Currents..."
+    def cmds = []
+    def ep = [destEndpoint: 0x02]
+    cmds += zigbee.readAttribute(0x0B04, 0x0505, ep) // Volt A
+    cmds += zigbee.readAttribute(0x0B04, 0x0905, ep) // Volt B
+    cmds += zigbee.readAttribute(0x0B04, 0x0A05, ep) // Volt C
+    cmds += zigbee.readAttribute(0x0B04, 0x0508, ep) // Current A
+    cmds += zigbee.readAttribute(0x0B04, 0x0908, ep) // Current B
+    cmds += zigbee.readAttribute(0x0B04, 0x0A08, ep) // Current C
+    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+}
+
+def pollEnergy() {
+    if (debugLogging) log.debug "EMIZB-151: Polling Task -> Fetching Cumulative Active Energy..."
+    def cmds = []
+    def ep = [destEndpoint: 0x02]
+    cmds += zigbee.readAttribute(0x0702, 0x0000, ep) // Total Energy Counter
+    cmds += zigbee.readAttribute(0x0702, 0x0002, ep) // Test
+    cmds += zigbee.readAttribute(0x0702, 0x0400, ep) // Powerline Frequency
+    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+}
+
+def refresh() {
+    if (debugLogging) log.debug "EMIZB-151: Global manual refresh triggered. Querying all categories simultaneously..."
+    pollEnergy()
+    pollTotalPower()
+    pollVoltAmp()
+    pollPhasePowers()
+}
+
+
+  
+   /* // Multiplier  (Cluster 0x0B04) commented out since it does not seem to be needed
+    cmds += zigbee.readAttribute(0x0B04, 0x0402, ep)
+    
+    // Divisor  (Cluster 0x0B04) commented out since it does not seem to be needed
+    cmds += zigbee.readAttribute(0x0B04, 0x0403, ep) */
+
+
+def parse(String description) {
+    def descMap = zigbee.parseDescriptionAsMap(description)
+    if (!descMap) {
+        if (debugLogging) log.debug "EMIZB-151: Ignored raw mesh traffic payload description map is empty."
+        return
+    }
+
+    def cluster = descMap.clusterId ?: descMap.cluster
+    def attrId  = descMap.attrId
+    def value   = descMap.value
+
+    if (!value || value == "null") {
+        if (debugLogging) log.debug "EMIZB-151 Parse Alert: Received payload frame containing null string or value placeholder fields."
+        return
+    }
+
+    if (debugLogging) {
+        log.debug "EMIZB-151 Raw Parse Incoming Frame: cluster=${cluster}, attr=${attrId}, value=${value}"
+    }
+
+    // === METERING CLUSTER (0x0702) ===
+    if (cluster == "0702" || cluster == "702") {
+        if (attrId == "0000") {
+            long rawVal = Long.parseLong(value, 16)
+            double kwh = rawVal / 1000.0
+            if (debugLogging) log.debug "EMIZB-151 Debug: Processed Cumulative Active Energy (Import) = ${kwh} kWh"
+            sendEvent(name: "energy", value: kwh, unit: "kWh")
+        } 
+        if (attrId == "0400") {
+            long rawVal = Long.parseLong(value, 16)
+            double freq = rawVal / 10.0
+            if (debugLogging) log.debug "EMIZB-151 Debug: Processed Cumulative Powerline Frequency = ${freq} Hz"
+            sendEvent(name: "frequency", value: freq, unit: "Hz")
+        } 
+        else {
+            if (debugLogging) log.debug "EMIZB-151 Debug: Unhandled 0x0702 Cluster Attribute encountered: Attr ID = ${attrId} with Hex value = ${value}"
+        }
+    }
+    // === ELECTRICAL MEASUREMENT CLUSTER (0x0B04) ===
+    else if (cluster == "0B04" || cluster == "B04") {
+        long rawLong = Long.parseLong(value, 16)
+        int rawVal = rawLong.intValue()
+        
+        // 16-bit signed integer conversion block for Phase attributes (INT16 / Two's Complement)
+        int shortVal = rawVal & 0xFFFF
+        if (shortVal > 0x7FFF) {
+            shortVal -= 0x10000
+        }
+      
+         switch(attrId) {
+            case "0304": // Total Active Power (32-bit signed)
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Aggregated Active Power = ${rawVal} W"
+                sendEvent(name: "power", value: rawVal, unit: "W")
+                break
+            case "0305": // Total Reactive Power (32-bit signed)
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Aggregated Reactive Power = ${rawVal} VAr"
+                sendEvent(name: "reactivePower", value: rawVal, unit: "VAr")
+                break
+                
+            // === VOLTAGES (DSMR Standard Scaled to 0.1V) ===
+            case "0505": 
+                double vA = rawVal / 10.0
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase A (L1) Voltage = ${vA} V"
+                sendEvent(name: "voltageA", value: vA, unit: "V")
+                break
+            case "0905": 
+                double vB = rawVal / 10.0
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase B (L2) Voltage = ${vB} V"
+                sendEvent(name: "voltageB", value: vB, unit: "V")
+                break
+            case "0A05": 
+                double vC = rawVal / 10.0
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase C (L3) Voltage = ${vC} V"
+                sendEvent(name: "voltageC", value: vC, unit: "V")
+                break
+            
+            // === CURRENTS (DSMR Standard Scaled to 0.1A) ===
+            case "0508": 
+                double cA = rawVal / 10.0
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase A (L1) Current = ${cA} A"
+                sendEvent(name: "currentA", value: cA, unit: "A")
+                break
+            case "0908": 
+                double cB = rawVal / 10.0
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase B (L2) Current = ${cB} A"
+                sendEvent(name: "currentB", value: cB, unit: "A")
+                break
+            case "0A08": 
+                double cC = rawVal / 10.0
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase C (L3) Current = ${cC} A"
+                sendEvent(name: "currentC", value: cC, unit: "A")
+                break
+            
+            // === ACTIVE POWER PER PHASE (16-bit Signed) ===
+            case "050B": 
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase A (L1) Active Power = ${shortVal} W"
+                sendEvent(name: "powerA", value: shortVal, unit: "W")
+                break
+            case "090B": 
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase B (L2) Active Power = ${shortVal} W"
+                sendEvent(name: "powerB", value: shortVal, unit: "W")
+                break
+            case "0A0B": 
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase C (L3) Active Power = ${shortVal} W"
+                sendEvent(name: "powerC", value: shortVal, unit: "W")
+                break
+        
+        
+            // === REACTIVE POWER PER PHASE (16-bit Signed) ===
+            case "050E": 
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase A (L1) Reactive Power = ${shortVal} VAr"
+                sendEvent(name: "reactivePowerA", value: shortVal, unit: "VAr")
+                break
+            case "090E": 
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase B (L2) Reactive Power = ${shortVal} VAr"
+                sendEvent(name: "reactivePowerB", value: shortVal, unit: "VAr")
+                break
+            case "0A0E": 
+                if (debugLogging) log.debug "EMIZB-151 Debug: Processed Phase C (L3) Reactive Power = ${shortVal} VAr"
+                sendEvent(name: "reactivePowerC", value: shortVal, unit: "VAr")
+                break 
+             
+			default:
+                if (debugLogging) log.debug "EMIZB-151 Debug: Unhandled 0x0B04 Cluster Attribute map index caught: Attr ID = ${attrId} with Hex value = ${value}"
+                break
+        }
+    }
+}
+
+
