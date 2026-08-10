@@ -10,8 +10,8 @@ import hubitat.zigbee.zcl.DataType
 metadata {
     definition(
         name: "Frient EMIZB-151 P1 Energy Meter",
-        namespace: "custom",
-        author: "Jonas"
+        namespace: "https://github.com/Gertsson/Hubitat/edit/main/Drivers/Frient%20EMIZB-151%20P1%20Energy%20Meter/Frient%20EMIZB-151",
+        author: "Gertsson"
     ) {
         capability "Refresh"
         capability "Initialize"
