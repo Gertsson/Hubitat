@@ -158,7 +158,7 @@ def pollEnergy() {
     def ep = [destEndpoint: 0x02]
     cmds += zigbee.readAttribute(0x0702, 0x0000, ep) // Total Energy Counter
     cmds += zigbee.readAttribute(0x0702, 0x0002, ep) // Test
-    cmds += zigbee.readAttribute(0x0702, 0x0400, ep) // Powerline Frequency
+    cmds += zigbee.readAttribute(0x0702, 0x0400, ep) // Test Seem to be same as Total Power
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
 }
 
@@ -209,9 +209,8 @@ def parse(String description) {
         } 
         if (attrId == "0400") {
             long rawVal = Long.parseLong(value, 16)
-            double freq = rawVal / 10.0
-            if (debugLogging) log.debug "EMIZB-151 Debug: Processed Cumulative Powerline Frequency = ${freq} Hz"
-            sendEvent(name: "frequency", value: freq, unit: "Hz")
+            if (debugLogging) log.debug "EMIZB-151 Debug: Processed Test = ${rawVal} "
+            sendEvent(name: "frequency", value: rawVal, unit: "")
         } 
         else {
             if (debugLogging) log.debug "EMIZB-151 Debug: Unhandled 0x0702 Cluster Attribute encountered: Attr ID = ${attrId} with Hex value = ${value}"
