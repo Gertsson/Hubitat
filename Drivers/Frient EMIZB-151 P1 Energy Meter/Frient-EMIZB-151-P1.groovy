@@ -2,7 +2,7 @@
  * Frient EMIZB-151 P1 Energy Meter
  * Hubitat Driver (Strict 0x0B04 / Standard Endpoint 0x02 Only)
  * 
- * Version: 1.0.0 (Production Optimized)
+ * Version: 1.0.0 (First Version, using polling only)
  */
 
 import hubitat.zigbee.zcl.DataType
@@ -10,8 +10,10 @@ import hubitat.zigbee.zcl.DataType
 metadata {
     definition(
         name: "Frient EMIZB-151 P1 Energy Meter",
-        namespace: "https://github.com/Gertsson/Hubitat/edit/main/Drivers/Frient%20EMIZB-151%20P1%20Energy%20Meter/Frient%20EMIZB-151",
-        author: "Gertsson"
+		namespace: "Gertsson", 
+		author: "Jonas Gertsson",
+		vid:"generic-power-energy",
+		importUrl: "https://raw.githubusercontent.com/Gertsson/Hubitat/main/Drivers/"
     ) {
         capability "Refresh"
         capability "Initialize"
