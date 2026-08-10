@@ -13,7 +13,7 @@ metadata {
 		namespace: "Gertsson", 
 		author: "Jonas Gertsson",
 		vid:"generic-power-energy",
-		importUrl: "https://raw.githubusercontent.com/Gertsson/Hubitat/main/Drivers/Frient EMIZB-151 P1 Energy Meter/Frient-EMIZB-151-P1.groovy"
+		importUrl: "https://raw.githubusercontent.com/Gertsson/Hubitat/main/Drivers/Frient-EMIZB-151-P1-Energy-Meter/Frient-EMIZB-151-P1.groovy"
     ) {
         capability "Refresh"
         capability "Initialize"
